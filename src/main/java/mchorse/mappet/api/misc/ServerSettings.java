@@ -76,6 +76,10 @@ public class ServerSettings implements INBTSerializable<NBTTagCompound>
 
     public final Trigger playerJournal;
 
+    public final Trigger onPlayerEat;
+
+    public final Trigger onPlayerDrink;
+
     public final Trigger livingKnockBack;
 
     public final Trigger projectileImpact;
@@ -136,6 +140,8 @@ public class ServerSettings implements INBTSerializable<NBTTagCompound>
         this.playerCloseContainer = this.register("player_close_container", new Trigger());
         this.playerOpenContainer = this.register("player_open_container", new Trigger());
         this.playerJournal = this.register("player_journal", new Trigger());
+        this.onPlayerEat = this.register("eoc_player_eat", new Trigger());
+        this.onPlayerDrink = this.register("eoc_player_drink", new Trigger());
         this.livingKnockBack = this.register("living_knockback", new Trigger());
         this.projectileImpact = this.register("projectile_impact", new Trigger());
         this.onLivingEquipmentChange = this.register("living_equipment_change", new Trigger());

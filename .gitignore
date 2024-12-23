@@ -21,7 +21,6 @@ gradle/wrapper/gradle-wrapper.properties
 
 # other
 eclipse
-run
 .DS_Store
 *.blend1
 /classes/

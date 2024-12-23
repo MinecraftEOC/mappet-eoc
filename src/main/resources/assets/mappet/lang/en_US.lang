@@ -337,6 +337,14 @@ mappet.gui.settings.triggers.player_journal=Player: opened journal
 mappet.gui.settings.triggers.descriptions.player_journal=This cancelable trigger gets triggered when a player opens the player journal.\n\nYou can use this trigger to implement your own player journal using UI API. When event gets canceled, the default player journal won't be opened.
 mappet.gui.settings.triggers.variables.player_journal=§7N/A§r
 
+mappet.gui.settings.triggers.eoc_player_eat=Player: on eating
+mappet.gui.settings.triggers.descriptions.eoc_player_eat=Triggers when player finish eat
+mappet.gui.settings.triggers.variables.eoc_player_eat=§7food, foodRestored§r
+
+mappet.gui.settings.triggers.eoc_player_drink=Player: on drink
+mappet.gui.settings.triggers.descriptions.eoc_player_drink=Triggers when player finish drink
+mappet.gui.settings.triggers.variables.eoc_player_drink=§7potion§r
+
 mappet.gui.settings.triggers.projectile_impact=Projectile: impact
 mappet.gui.settings.triggers.descriptions.projectile_impact=This cancellable gets triggered when a projectile hits an entity or a block.
 mappet.gui.settings.triggers.variables.projectile_impact=§6pos§r, the position where the projectile hit.\n§6entity§r, the entity that was hit.\n§6projectile§r, the projectile that hit the entity.\n§6thrower§r, the entity that threw the projectile.

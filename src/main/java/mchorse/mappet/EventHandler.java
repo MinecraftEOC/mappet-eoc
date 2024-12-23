@@ -38,6 +38,9 @@ import mchorse.mappet.network.common.quests.PacketQuest;
 import mchorse.mappet.network.common.quests.PacketQuests;
 import mchorse.mappet.network.common.scripts.PacketClick;
 import mchorse.mappet.utils.RunnableExecutionFork;
+import mchorse.mappet.utils.NBTUtils;
+import mchorse.mappet.common.ScriptedItemProps;
+import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import mchorse.mclib.utils.ReflectionUtils;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
@@ -93,6 +96,8 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.item.ItemFood;
+import net.minecraft.item.ItemPotion;
 import org.reflections.Reflections;
 
 import java.lang.reflect.Field;
@@ -105,6 +110,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
 
 public class EventHandler
 {
@@ -1282,5 +1288,41 @@ public class EventHandler
                 .set("hand", event.getHand() == EnumHand.MAIN_HAND ? "main" : "off");
 
         this.trigger(event, Mappet.settings.playerEntityLeash, context);
+    }
+
+    @SubscribeEvent
+    public void onPlayerEat(LivingEntityUseItemEvent.Finish event) {
+        if (!event.getEntityLiving().getEntityWorld().isRemote) {
+            if (event.getEntityLiving() instanceof EntityPlayer) {
+                EntityPlayer player = (EntityPlayer) event.getEntityLiving();
+                ItemStack item = event.getItem();
+
+                if (item.getItem() instanceof ItemFood) {
+                    ItemFood food = (ItemFood) item.getItem();
+                    int foodRestored = food.getHealAmount(item);
+
+                    DataContext context = new DataContext(player);
+                    context.getValues().put("food", ScriptItemStack.create(item));
+                    context.getValues().put("foodRestored", foodRestored);
+                    CommonProxy.eventHandler.trigger(event, Mappet.settings.onPlayerEat, context);
+                }
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onPlayerDrink(LivingEntityUseItemEvent.Finish event) {
+        if (!event.getEntityLiving().getEntityWorld().isRemote) {
+            if (event.getEntityLiving() instanceof EntityPlayer) {
+                EntityPlayer player = (EntityPlayer) event.getEntityLiving();
+                ItemStack item = event.getItem();
+
+                if (item.getItem() instanceof ItemPotion) {
+                    DataContext context = new DataContext(player);
+                    context.getValues().put("potion", ScriptItemStack.create(item));
+                    CommonProxy.eventHandler.trigger(event, Mappet.settings.onPlayerDrink, context);
+                }
+            }
+        }
     }
 }
