@@ -343,6 +343,18 @@ mappet.gui.settings.triggers.eoc_player_drink=Игрок: при выпиван�
 mappet.gui.settings.triggers.descriptions.eoc_player_drink=Триггер срабатывает когда игрок заканчивает выпивание жидкости
 mappet.gui.settings.triggers.variables.eoc_player_drink=§7potion§r
 
+mappet.gui.settings.triggers.eoc_player_use_item_start=Игрок: использование предмета (старт)
+mappet.gui.settings.triggers.descriptions.eoc_player_use_item_start=Триггер срабатывает когда игрок начинает использовать предмет
+mappet.gui.settings.triggers.variables.eoc_player_use_item_start=§7item§r
+
+mappet.gui.settings.triggers.eoc_player_use_item_stop=Игрок: использование предмета (стоп)
+mappet.gui.settings.triggers.descriptions.eoc_player_use_item_stop=Триггер срабатывает когда игрок прекращает использовать предмет
+mappet.gui.settings.triggers.variables.eoc_player_use_item_stop=§7item§r
+
+mappet.gui.settings.triggers.eoc_player_use_item_finish=Игрок: использование предмета (финиш)
+mappet.gui.settings.triggers.descriptions.eoc_player_use_item_finish=Триггер срабатывает когда игрок заканчивает использовать предмет
+mappet.gui.settings.triggers.variables.eoc_player_use_item_finish=§7item§r
+
 mappet.gui.settings.triggers.projectile_impact=Снаряд: при попадании
 mappet.gui.settings.triggers.descriptions.projectile_impact=Этот отменяемый триггер срабатываетт когда снаряд попадает по энтити или блоку.
 mappet.gui.settings.triggers.variables.projectile_impact=§6pos§r, позиция, где попал снаряд.\n§6entity§r, сущность в которую попал снаряд.\n§6projectile§r, сам снаряд, который попал по сущности.\n§6thrower§r, сущность которая бросила снаряд.

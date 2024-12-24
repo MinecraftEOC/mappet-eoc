@@ -1292,37 +1292,84 @@ public class EventHandler
 
     @SubscribeEvent
     public void onPlayerEat(LivingEntityUseItemEvent.Finish event) {
-        if (!event.getEntityLiving().getEntityWorld().isRemote) {
-            if (event.getEntityLiving() instanceof EntityPlayer) {
-                EntityPlayer player = (EntityPlayer) event.getEntityLiving();
-                ItemStack item = event.getItem();
+        if (event.getEntityLiving().getEntityWorld().isRemote) {
+            return;
+        }
 
-                if (item.getItem() instanceof ItemFood) {
-                    ItemFood food = (ItemFood) item.getItem();
-                    int foodRestored = food.getHealAmount(item);
+        if (event.getEntityLiving() instanceof EntityPlayer) {
+            ItemStack item = event.getItem();
 
-                    DataContext context = new DataContext(player);
-                    context.getValues().put("food", ScriptItemStack.create(item));
-                    context.getValues().put("foodRestored", foodRestored);
-                    CommonProxy.eventHandler.trigger(event, Mappet.settings.onPlayerEat, context);
-                }
+            if (item.getItem() instanceof ItemFood) {
+                ItemFood food = (ItemFood) item.getItem();
+                int foodRestored = food.getHealAmount(item);
+
+                DataContext context = new DataContext(event.getEntityLiving());
+                context.getValues().put("food", ScriptItemStack.create(item));
+                context.getValues().put("foodRestored", foodRestored);
+                CommonProxy.eventHandler.trigger(event, Mappet.settings.onPlayerEat, context);
             }
         }
     }
 
     @SubscribeEvent
     public void onPlayerDrink(LivingEntityUseItemEvent.Finish event) {
-        if (!event.getEntityLiving().getEntityWorld().isRemote) {
-            if (event.getEntityLiving() instanceof EntityPlayer) {
-                EntityPlayer player = (EntityPlayer) event.getEntityLiving();
-                ItemStack item = event.getItem();
+        if (event.getEntityLiving().getEntityWorld().isRemote) {
+            return;
+        }
 
-                if (item.getItem() instanceof ItemPotion) {
-                    DataContext context = new DataContext(player);
-                    context.getValues().put("potion", ScriptItemStack.create(item));
-                    CommonProxy.eventHandler.trigger(event, Mappet.settings.onPlayerDrink, context);
-                }
+        if (event.getEntityLiving() instanceof EntityPlayer) {
+            ItemStack item = event.getItem();
+
+            if (item.getItem() instanceof ItemPotion) {
+                DataContext context = new DataContext(event.getEntityLiving());
+                context.getValues().put("potion", ScriptItemStack.create(item));
+                CommonProxy.eventHandler.trigger(event, Mappet.settings.onPlayerDrink, context);
             }
+        }
+    }
+
+    @SubscribeEvent
+    public void onPlayerUseItemStart(LivingEntityUseItemEvent.Start event) {
+        if (event.getEntityLiving().getEntityWorld().isRemote) {
+            return;
+        }
+
+        if (event.getEntityLiving() instanceof EntityPlayer) {
+            ItemStack item = event.getItem();
+
+            DataContext context = new DataContext(event.getEntityLiving());
+            context.getValues().put("item", ScriptItemStack.create(item));
+            CommonProxy.eventHandler.trigger(event, Mappet.settings.onPlayerUseItemStart, context);
+        }
+    }
+
+    @SubscribeEvent
+    public void onPlayerUseItemStop(LivingEntityUseItemEvent.Stop event) {
+        if (event.getEntityLiving().getEntityWorld().isRemote) {
+            return;
+        }
+
+        if (event.getEntityLiving() instanceof EntityPlayer) {
+            ItemStack item = event.getItem();
+
+            DataContext context = new DataContext(event.getEntityLiving());
+            context.getValues().put("item", ScriptItemStack.create(item));
+            CommonProxy.eventHandler.trigger(event, Mappet.settings.onPlayerUseItemStop, context);
+        }
+    }
+
+    @SubscribeEvent
+    public void onPlayerUseItemFinish(LivingEntityUseItemEvent.Finish event) {
+        if (event.getEntityLiving().getEntityWorld().isRemote) {
+            return;
+        }
+
+        if (event.getEntityLiving() instanceof EntityPlayer) {
+            ItemStack item = event.getItem();
+
+            DataContext context = new DataContext(event.getEntityLiving());
+            context.getValues().put("item", ScriptItemStack.create(item));
+            CommonProxy.eventHandler.trigger(event, Mappet.settings.onPlayerUseItemFinish, context);
         }
     }
 }
