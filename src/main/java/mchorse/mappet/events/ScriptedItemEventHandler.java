@@ -172,6 +172,8 @@ public class ScriptedItemEventHandler
                         .set("y", event.getPos().getY())
                         .set("z", event.getPos().getZ())
                         .set("hand", event.getHand() == EnumHand.MAIN_HAND ? "main" : "off");
+
+                context.getValues().put("blockPos", event.getPos());
                 CommonProxy.eventHandler.trigger(event, props.interactWithBlock, context);
             }
         }
