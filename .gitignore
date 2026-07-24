@@ -19,6 +19,9 @@ build
 
 gradle/wrapper/gradle-wrapper.properties
 
+# run
+/run/
+
 # other
 eclipse
 .DS_Store

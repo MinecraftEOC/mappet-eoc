@@ -240,6 +240,10 @@ public class NpcState implements INBTSerializable<NBTTagCompound>
      */
     public ValueBoolean alwaysWander = new ValueBoolean("AlwaysWander");
 
+    public ValueBoolean customFlee = new ValueBoolean("CustomFlee");
+
+    public ValueBoolean noAttack = new ValueBoolean("NoAttack");
+
     /**
      * Whether the NPC should be able to fly. (experimental)
      */
@@ -373,6 +377,8 @@ public class NpcState implements INBTSerializable<NBTTagCompound>
         this.registerValue(lookAround);
         this.registerValue(wander);
         this.registerValue(alwaysWander);
+        this.registerValue(customFlee);
+        this.registerValue(noAttack);
         this.registerValue(canFly);
         this.registerValue(flightMaxHeight);
         this.registerValue(flightMinHeight);

@@ -306,6 +306,11 @@ public class EntityNpc extends EntityCreature implements IEntityAdditionalSpawnD
                 this.tasks.addTask(9, new EntityAIWanderAvoidWater(this, speed / 2D));
             }
 
+            if (this.state.customFlee.get())
+            {
+                this.tasks.addTask(10, new EntityAICustomFlee(this, speed, 10));
+            }
+
             if (this.state.canFly.get())
             {
                 this.moveHelper = new FlyingMoveHelper(this);
@@ -320,7 +325,7 @@ public class EntityNpc extends EntityCreature implements IEntityAdditionalSpawnD
         this.targetTasks.addTask(1, targetAI = new EntityAIHurtByTargetNpc(this, false));
         this.targetTasks.addTask(2, new EntityAINearestAttackableTarget<EntityLivingBase>(this, EntityLivingBase.class, 10, true, false, this::targetCheck));
 
-        if (this.state != null)
+        if (this.state != null && !this.state.noAttack.get())
         {
             this.tasks.addTask(4, new EntityAIAttackNpcMelee(this, speed, false, this.state.damageDelay.get()));
         }
