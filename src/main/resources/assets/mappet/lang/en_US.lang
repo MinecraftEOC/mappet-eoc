@@ -345,6 +345,10 @@ mappet.gui.settings.triggers.eoc_player_drink=Player: on drink
 mappet.gui.settings.triggers.descriptions.eoc_player_drink=Triggers when player finish drink
 mappet.gui.settings.triggers.variables.eoc_player_drink=§7potion§r
 
+mappet.gui.settings.triggers.eoc_player_tick=Player: ticking
+mappet.gui.settings.triggers.descriptions.eoc_player_tick=This gets triggered every server tick (i.e. §720§r times a second) for every player on the server. Subject is the player being ticked.\n\nProTip: use the frequency option of the trigger to limit how many times a script or event gets triggered.
+mappet.gui.settings.triggers.variables.eoc_player_tick=§7N/A§r
+
 mappet.gui.settings.triggers.projectile_impact=Projectile: impact
 mappet.gui.settings.triggers.descriptions.projectile_impact=This cancellable gets triggered when a projectile hits an entity or a block.
 mappet.gui.settings.triggers.variables.projectile_impact=§6pos§r, the position where the projectile hit.\n§6entity§r, the entity that was hit.\n§6projectile§r, the projectile that hit the entity.\n§6thrower§r, the entity that threw the projectile.

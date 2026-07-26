@@ -976,6 +976,16 @@ public class EventHandler
             ((Character) character).updateDisplayedHUDsList();
         }
 
+        if (!event.player.world.isRemote && Mappet.settings != null)
+        {
+            Trigger playerTick = Mappet.settings.registered.get("eoc_player_tick");
+
+            if (playerTick != null && !playerTick.isEmpty())
+            {
+                this.trigger(event, playerTick, new DataContext(event.player));
+            }
+        }
+
         if (event.player.world.isRemote && event.player == Minecraft.getMinecraft().player)
         {
             this.onPlayerTickClient(event);
