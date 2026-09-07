@@ -23,12 +23,21 @@ import javax.script.ScriptException;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class Script extends AbstractData
 {
+    /**
+     * How often (in milliseconds) source files of a script are allowed to be
+     * checked for modifications. Scripts can be executed multiple times per
+     * tick, and there is no point in hitting the file system that often.
+     */
+    private static final long HOT_RELOAD_THRESHOLD = 1000;
+
     public String code = "";
 
     public boolean unique = true;
@@ -41,6 +50,17 @@ public class Script extends AbstractData
 
     private List<ScriptRange> ranges;
 
+    /**
+     * Last modification date of every script file that was baked into the
+     * engine (the script itself and all of its libraries), see
+     * {@link #isOutdated(ScriptManager)}
+     */
+    private Map<String, Long> sources = new HashMap<String, Long>();
+
+    private long metaTimestamp;
+
+    private long lastCheck;
+
     public Script()
     {
     }
@@ -49,6 +69,11 @@ public class Script extends AbstractData
     {
         if (this.engine == null)
         {
+            this.sources.clear();
+            this.trackSource(manager, this.getId());
+            this.metaTimestamp = this.getMetaTimestamp(manager);
+            this.lastCheck = System.currentTimeMillis();
+
             initializeEngine();
             configureEngineContext();
             registerScriptVariables();
@@ -140,6 +165,11 @@ public class Script extends AbstractData
         try
         {
             File scriptFile = manager.getScriptFile(library);
+
+            /* Tracking must happen before reading, so that a library which gets
+             * edited mid-read is picked up on the next check rather than never */
+            this.trackSource(manager, library);
+
             String code = FileUtils.readFileToString(scriptFile, Utils.getCharset());
 
             if (isKotlin)
@@ -245,6 +275,68 @@ public class Script extends AbstractData
         {
             this.engine.eval(finalCode.toString());
         }
+    }
+
+    private void trackSource(ScriptManager manager, String id)
+    {
+        File file = manager.getScriptFile(id);
+
+        if (file != null && file.isFile())
+        {
+            this.sources.put(id, file.lastModified());
+        }
+    }
+
+    private long getMetaTimestamp(ScriptManager manager)
+    {
+        File file = manager.getFile(this.getId());
+
+        return file == null ? 0 : file.lastModified();
+    }
+
+    /**
+     * Check whether any of the files this script's engine was built from were
+     * modified since then.
+     *
+     * <p>This is what allows scripts edited outside of the dashboard (in an
+     * external editor) to be picked up without restarting the server. Since
+     * libraries get baked into the engine of the script that uses them, their
+     * files are tracked as well.</p>
+     */
+    public boolean isOutdated(ScriptManager manager)
+    {
+        long current = System.currentTimeMillis();
+
+        if (current - this.lastCheck < HOT_RELOAD_THRESHOLD)
+        {
+            return false;
+        }
+
+        this.lastCheck = current;
+
+        if (this.getMetaTimestamp(manager) != this.metaTimestamp)
+        {
+            return true;
+        }
+
+        for (Map.Entry<String, Long> entry : this.sources.entrySet())
+        {
+            File file = manager.getScriptFile(entry.getKey());
+
+            /* A missing file means the script would fail to reload anyway,
+             * so it's better to keep running the last version that worked */
+            if (file == null || !file.isFile())
+            {
+                continue;
+            }
+
+            if (file.lastModified() != entry.getValue().longValue())
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public String getScriptExtension()

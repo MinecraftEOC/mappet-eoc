@@ -126,6 +126,9 @@ mappet.config.general.tooltip=Общие настройки мода
 mappet.config.general.data_caching=Кэширование данных
 mappet.config.comments.general.data_caching=Определяет, должны ли данные кэшироваться вместо того чтобы каждый раз они читались из файла.
 
+mappet.config.general.script_hot_reload=Горячая перезагрузка скриптов
+mappet.config.comments.general.script_hot_reload=Если включено, скрипты автоматически перезагружаются после изменения их файла (или файла одной из их библиотек) на диске. Позволяет править скрипты во внешнем редакторе, не сохраняя их в дашборде и не перезапуская сервер.
+
 mappet.config.general.enable_forge_triggers=Включить forge триггеры
 mappet.config.comments.general.enable_forge_triggers=Определяет, должны ли быть включены forge триггеры. \n\n§c§lВНИМАНИЕ!§r\n\nЭта опция опасна и может §c§lсломать ваш мир§r. Используйте только если знаете что вы делаете, на свой страх и риск.
 mappet.config.general.load_custom_sounds_on_login=Reload all custom sounds on login

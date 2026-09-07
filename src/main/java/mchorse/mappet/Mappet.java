@@ -139,6 +139,8 @@ public final class Mappet
     /* Configuration */
     public static ValueBoolean generalDataCaching;
 
+    public static ValueBoolean scriptHotReload;
+
     public static ValueBoolean loadCustomSoundsOnLogin;
 
     public static ValueBoolean npcsPeacefulDamage;
@@ -187,6 +189,7 @@ public final class Mappet
 
         builder.category("general").register(new ValueButtons("buttons").clientSide());
         generalDataCaching = builder.getBoolean("data_caching", true);
+        scriptHotReload = builder.getBoolean("script_hot_reload", true);
         enableForgeTriggers = builder.getBoolean("enable_forge_triggers", false);
         loadCustomSoundsOnLogin = builder.getBoolean("load_custom_sounds_on_login", true);
 

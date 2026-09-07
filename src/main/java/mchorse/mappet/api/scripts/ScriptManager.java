@@ -1,5 +1,6 @@
 package mchorse.mappet.api.scripts;
 
+import mchorse.mappet.Mappet;
 import mchorse.mappet.api.scripts.code.ScriptEvent;
 import mchorse.mappet.api.scripts.code.ScriptFactory;
 import mchorse.mappet.api.utils.DataContext;
@@ -139,6 +140,17 @@ public class ScriptManager extends BaseManager<Script>
     private Script getScript(String id) throws ScriptException
     {
         Script script = this.uniqueScripts.get(id);
+
+        /* Drop the cached engine if the script (or any of its libraries) was
+         * edited on disk, so that external editors don't require a dashboard
+         * save or a server restart for changes to apply */
+        if (script != null && Mappet.scriptHotReload.get() && script.isOutdated(this))
+        {
+            this.uniqueScripts.remove(id);
+            this.globalLibraries.remove(id);
+
+            script = null;
+        }
 
         if (script == null)
         {
