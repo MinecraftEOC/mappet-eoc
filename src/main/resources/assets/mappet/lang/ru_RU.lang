@@ -350,6 +350,10 @@ mappet.gui.settings.triggers.eoc_player_tick=Игрок: тик
 mappet.gui.settings.triggers.descriptions.eoc_player_tick=Триггер срабатывает каждый тик сервера (т.е. §720§r раз в секунду) для каждого игрока на сервере. Субъект — игрок, на котором сработал тик.\n\nСовет: используйте опцию частоты (frequency) у триггера, чтобы ограничить, как часто вызывается скрипт или событие.
 mappet.gui.settings.triggers.variables.eoc_player_tick=§7N/A§r
 
+mappet.gui.settings.triggers.eoc_player_armor_change=Игрок: смена брони
+mappet.gui.settings.triggers.descriptions.eoc_player_armor_change=Триггер срабатывает когда игрок надевает, снимает или меняет часть брони. Субъект — игрок.\n\n§7slot§r — одно из §7helmet§r, §7body§r, §7leggings§r или §7boots§r. §7id§r — идентификатор надетой брони (пустая строка, если броню сняли), §7previousId§r — идентификатор того, что было надето до этого. §7equipped§r равно §7true§r при надевании и §7false§r при снятии.
+mappet.gui.settings.triggers.variables.eoc_player_armor_change=§7slot, id, previousId, equipped, item, previousItem§r
+
 mappet.gui.settings.triggers.eoc_player_use_item_start=Игрок: использование предмета (старт)
 mappet.gui.settings.triggers.descriptions.eoc_player_use_item_start=Триггер срабатывает когда игрок начинает использовать предмет
 mappet.gui.settings.triggers.variables.eoc_player_use_item_start=§7item§r

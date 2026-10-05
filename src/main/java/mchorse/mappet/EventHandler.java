@@ -18,6 +18,7 @@ import mchorse.mappet.api.scripts.user.data.ScriptVector;
 import mchorse.mappet.api.scripts.user.entities.IScriptEntity;
 import mchorse.mappet.api.scripts.user.entities.IScriptPlayer;
 import mchorse.mappet.api.triggers.Trigger;
+import mchorse.mappet.api.triggers.blocks.AbstractTriggerBlock;
 import mchorse.mappet.api.utils.DataContext;
 import mchorse.mappet.api.utils.IExecutable;
 import mchorse.mappet.capabilities.character.Character;
@@ -59,6 +60,7 @@ import net.minecraft.init.Items;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.ContainerPlayer;
+import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
@@ -982,7 +984,28 @@ public class EventHandler
 
             if (playerTick != null && !playerTick.isEmpty())
             {
-                this.trigger(event, playerTick, new DataContext(event.player));
+                DataContext context = new DataContext(event.player);
+
+                context.getValues().put("event", event);
+
+                /* Frequency is counted from world time rather than through
+                 * triggerWithFrequency, because the trigger block's tick counter
+                 * is shared between all players, which would make blocks with a
+                 * frequency above 1 fire only for some of the players */
+                long time = event.player.world.getTotalWorldTime();
+
+                for (AbstractTriggerBlock block : playerTick.blocks)
+                {
+                    if (context.isCanceled())
+                    {
+                        break;
+                    }
+
+                    if (time % Math.max(block.frequency, 1) == 0)
+                    {
+                        block.trigger(context);
+                    }
+                }
             }
         }
 
@@ -1252,6 +1275,75 @@ public class EventHandler
 
             this.trigger(event, trigger, context);
         }
+    }
+
+    @SubscribeEvent
+    public void onPlayerArmorChange(LivingEquipmentChangeEvent event)
+    {
+        if (event.getEntity().world.isRemote || !(event.getEntity() instanceof EntityPlayer))
+        {
+            return;
+        }
+
+        String slot = this.getArmorSlotName(event.getSlot());
+
+        if (slot == null)
+        {
+            /* Not an armor slot, i.e. the main hand or the off hand */
+            return;
+        }
+
+        Trigger trigger = Mappet.settings.registered.get("eoc_player_armor_change");
+
+        if (trigger == null || trigger.isEmpty())
+        {
+            return;
+        }
+
+        ItemStack to = event.getTo();
+        ItemStack from = event.getFrom();
+
+        String id = this.getArmorItemId(to);
+
+        DataContext context = new DataContext(event.getEntity());
+
+        context.getValues().put("slot", slot);
+        context.getValues().put("id", id);
+        context.getValues().put("previousId", this.getArmorItemId(from));
+        context.getValues().put("equipped", !id.isEmpty());
+        context.getValues().put("item", ScriptItemStack.create(to));
+        context.getValues().put("previousItem", ScriptItemStack.create(from));
+
+        this.trigger(event, trigger, context);
+    }
+
+    private String getArmorSlotName(EntityEquipmentSlot slot)
+    {
+        switch (slot)
+        {
+            case HEAD:
+                return "helmet";
+            case CHEST:
+                return "body";
+            case LEGS:
+                return "leggings";
+            case FEET:
+                return "boots";
+            default:
+                return null;
+        }
+    }
+
+    private String getArmorItemId(ItemStack stack)
+    {
+        if (stack.isEmpty())
+        {
+            return "";
+        }
+
+        ResourceLocation name = stack.getItem().getRegistryName();
+
+        return name == null ? "" : name.toString();
     }
 
     @SideOnly(Side.CLIENT)

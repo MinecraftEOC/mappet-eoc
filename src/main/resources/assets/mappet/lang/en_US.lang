@@ -352,6 +352,10 @@ mappet.gui.settings.triggers.eoc_player_tick=Player: ticking
 mappet.gui.settings.triggers.descriptions.eoc_player_tick=This gets triggered every server tick (i.e. §720§r times a second) for every player on the server. Subject is the player being ticked.\n\nProTip: use the frequency option of the trigger to limit how many times a script or event gets triggered.
 mappet.gui.settings.triggers.variables.eoc_player_tick=§7N/A§r
 
+mappet.gui.settings.triggers.eoc_player_armor_change=Player: armor change
+mappet.gui.settings.triggers.descriptions.eoc_player_armor_change=This gets triggered when a player puts on, takes off or swaps a piece of armor. Subject is the player.\n\n§7slot§r is one of §7helmet§r, §7body§r, §7leggings§r or §7boots§r. §7id§r is the registry name of the armor that is now worn (empty when it was taken off), and §7previousId§r is the one that was worn before. §7equipped§r is §7true§r when a piece was put on and §7false§r when it was taken off.
+mappet.gui.settings.triggers.variables.eoc_player_armor_change=§7slot, id, previousId, equipped, item, previousItem§r
+
 mappet.gui.settings.triggers.projectile_impact=Projectile: impact
 mappet.gui.settings.triggers.descriptions.projectile_impact=This cancellable gets triggered when a projectile hits an entity or a block.
 mappet.gui.settings.triggers.variables.projectile_impact=§6pos§r, the position where the projectile hit.\n§6entity§r, the entity that was hit.\n§6projectile§r, the projectile that hit the entity.\n§6thrower§r, the entity that threw the projectile.
