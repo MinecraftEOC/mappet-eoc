@@ -2,12 +2,15 @@ package mchorse.mappet.client.gui;
 
 import mchorse.mappet.api.ui.UI;
 import mchorse.mappet.api.ui.UIContext;
+import mchorse.mappet.client.gui.utils.GuiDice;
 import mchorse.mappet.network.Dispatcher;
 import mchorse.mappet.network.common.ui.PacketUI;
 import mchorse.mclib.client.gui.framework.GuiBase;
 import mchorse.mclib.client.gui.framework.elements.GuiElement;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.NBTTagCompound;
+
+import java.io.IOException;
 
 public class GuiUserInterface extends GuiBase
 {
@@ -34,6 +37,27 @@ public class GuiUserInterface extends GuiBase
         }
 
         this.root.resize();
+    }
+
+    @Override
+    protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException
+    {
+        if (mouseButton == 0)
+        {
+            boolean skipped = false;
+
+            for (GuiDice dice : this.root.getChildren(GuiDice.class))
+            {
+                skipped |= dice.skip();
+            }
+
+            if (skipped)
+            {
+                return;
+            }
+        }
+
+        super.mouseClicked(mouseX, mouseY, mouseButton);
     }
 
     @Override

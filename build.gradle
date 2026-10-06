@@ -71,6 +71,9 @@ dependencies {
     implementation("org.reflections:reflections:0.10.2")
     implementation("net.minecraftforge:mergetool:0.2.3.3") { force = true }
 
+    testImplementation 'junit:junit:4.13.2'
+    testRuntimeOnly fileTree(dir: 'run/libs', include: ['*-dev.jar'])
+
     // You may put jars on which you depend on in ./libs or you may define them like so..
     // compile "some.group:artifact:version:classifier"
     // compile "some.group:artifact:version"
@@ -89,6 +92,10 @@ dependencies {
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
 
+}
+
+test {
+    workingDir = buildDir
 }
 
 // Example for how to get properties into the manifest for reading by the runtime...
@@ -207,6 +214,8 @@ task scriptingJavadocsJson(type: Exec) {
 }
 
 tasks.processResources.dependsOn(scriptingJavadocsJson)
+// prepareAssets also copies docs.json into the class output used by the JAR.
+tasks.prepareAssets.dependsOn(scriptingJavadocsJson)
 
 /* Comparing keys */
 task compareLangFiles {

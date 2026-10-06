@@ -5,6 +5,7 @@ import mchorse.mappet.api.scripts.user.items.IScriptItemStack;
 import mchorse.mappet.api.ui.components.UIButtonComponent;
 import mchorse.mappet.api.ui.components.UIClickComponent;
 import mchorse.mappet.api.ui.components.UIComponent;
+import mchorse.mappet.api.ui.components.UIDiceComponent;
 import mchorse.mappet.api.ui.components.UIGraphicsComponent;
 import mchorse.mappet.api.ui.components.UIIconButtonComponent;
 import mchorse.mappet.api.ui.components.UILabelComponent;
@@ -131,6 +132,13 @@ public interface IMappetUIBuilder
      * <p>Check {@link UIGraphicsComponent} for description and examples.</p>
      */
     public UIGraphicsComponent graphics();
+
+    /**
+     * Create an animated dice UI component, initially showing its resting texture.
+     *
+     * <p>Check {@link UIDiceComponent} for timing and scripting examples.</p>
+     */
+    public UIDiceComponent dice();
 
     /**
      * Create and insert a button UI component into UI being built by this builder.

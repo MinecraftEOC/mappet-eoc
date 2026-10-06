@@ -7,6 +7,7 @@ import mchorse.mappet.api.ui.UI;
 import mchorse.mappet.api.ui.components.UIButtonComponent;
 import mchorse.mappet.api.ui.components.UIClickComponent;
 import mchorse.mappet.api.ui.components.UIComponent;
+import mchorse.mappet.api.ui.components.UIDiceComponent;
 import mchorse.mappet.api.ui.components.UIGraphicsComponent;
 import mchorse.mappet.api.ui.components.UIIconButtonComponent;
 import mchorse.mappet.api.ui.components.UILabelComponent;
@@ -117,6 +118,16 @@ public class MappetUIBuilder implements IMappetUIBuilder
     public UIGraphicsComponent graphics()
     {
         UIGraphicsComponent component = new UIGraphicsComponent();
+
+        this.current.getChildComponents().add(component);
+
+        return component;
+    }
+
+    @Override
+    public UIDiceComponent dice()
+    {
+        UIDiceComponent component = new UIDiceComponent();
 
         this.current.getChildComponents().add(component);
 
