@@ -14,9 +14,15 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 /**
  * Dice check with looping spin, result, base transfer and outcome caption.
  *
- * <p>Created with {@link IMappetUIBuilder#dice()} or {@code ui.create("dice")}.
+ * <p>Created with {@link IMappetUIBuilder#dice()}, {@code ui.dice(color)}
+ * or {@code ui.create("dice")}.
  * Frame order and timing come from the textures' Minecraft animation metadata.
  * Each component has its own client timer, independent of server tick rate.</p>
+ *
+ * <p>The component frame is the entire panel, not just the die. The default
+ * panel is 240 by 300 GUI pixels. All widgets and animations fit inside it,
+ * preserving proportions. {@code wh(128, 128)} makes the whole panel 128 by
+ * 128, while {@code background(0)} disables its translucent background.</p>
  *
  * <pre>{@code
  *    var ui = mappet.createUI(c, "handler").background();
@@ -35,9 +41,14 @@ import net.minecraftforge.fml.relauncher.SideOnly;
  */
 public class UIDiceComponent extends UIComponent
 {
-    public String spinTexture = "mappet:textures/gui/dice/d20_spin.png";
-    public String stopTexture = "mappet:textures/gui/dice/d20_stop.png";
-    public String restTexture = "mappet:textures/gui/dice/d20_rest.png";
+    public static final int DEFAULT_WIDTH = 240;
+    public static final int DEFAULT_HEIGHT = 300;
+    public static final String TEXTURES = "mappet:textures/gui/dice/gui_components_480x600/";
+
+    public String spinTexture = TEXTURES + "dice/original/spin.png";
+    public String stopTexture = TEXTURES + "dice/original/stop.png";
+    public String restTexture = TEXTURES + "dice/original/rest.png";
+    public String variant = "original";
 
     public long duration = 2000;
     public boolean playing;
@@ -48,23 +59,70 @@ public class UIDiceComponent extends UIComponent
     public int rollDifficulty;
     public int rollBase;
     public long rollSequence;
+    public int background = 0x88000000;
 
     public UIDiceComponent()
     {
-        this.w.offset = 64;
-        this.h.offset = 64;
+        this.w.offset = DEFAULT_WIDTH;
+        this.h.offset = DEFAULT_HEIGHT;
         this.x.value = this.y.value = 0.5F;
         this.x.anchor = this.y.anchor = 0.5F;
     }
 
     /**
-     * Show a difficulty label and a nonnegative integer above and left of the die.
+     * Set the background of the entire panel as ARGB, like a label background.
+     * Use zero for a transparent panel. This does not darken the rest of the screen.
+     */
+    public UIDiceComponent background(int color)
+    {
+        this.background = color;
+        this.change("Background");
+
+        return this;
+    }
+
+    /**
+     * Select a die color by folder name. A string obtained from player states is
+     * supported just like a literal. Empty or null selects original.
+     *
+     * <p>Available variants: original, blue, burgundy, green, purple, red, violet,
+     * yellow. This only changes the die, not the success/failure number colors.</p>
+     */
+    public UIDiceComponent variant(String name)
+    {
+        if (name == null || name.trim().isEmpty())
+        {
+            name = "original";
+        }
+        else
+        {
+            name = name.trim().toLowerCase(java.util.Locale.ROOT);
+        }
+
+        switch (name)
+        {
+            case "original": case "blue": case "burgundy": case "green":
+            case "purple": case "red": case "violet": case "yellow":
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown dice variant: " + name);
+        }
+
+        this.variant = name;
+        this.textures(TEXTURES + "dice/" + name + "/spin.png",
+                TEXTURES + "dice/" + name + "/stop.png", TEXTURES + "dice/" + name + "/rest.png");
+
+        return this;
+    }
+
+    /**
+     * Show a difficulty label and an integer from 0 to 99 above and left of the die.
      */
     public UIDiceComponent difficulty(int value)
     {
-        if (value < 0)
+        if (value < 0 || value > 99)
         {
-            throw new IllegalArgumentException("Dice difficulty must not be negative");
+            throw new IllegalArgumentException("Dice difficulty must be an integer from 0 to 99");
         }
 
         this.difficulty = value;
@@ -74,13 +132,13 @@ public class UIDiceComponent extends UIComponent
     }
 
     /**
-     * Show a base label and a plus sign followed by a nonnegative integer.
+     * Show the parameter/skill label and a plus sign followed by an integer from 0 to 99.
      */
     public UIDiceComponent base(int value)
     {
-        if (value < 0)
+        if (value < 0 || value > 99)
         {
-            throw new IllegalArgumentException("Dice base must not be negative");
+            throw new IllegalArgumentException("Dice base must be an integer from 0 to 99");
         }
 
         this.base = value;
@@ -94,6 +152,7 @@ public class UIDiceComponent extends UIComponent
      * the result reveal, 600 ms base transfer, sum reveal and caption follow afterwards.
      *
      * <p>Natural 1 and 20 ignore base and difficulty and keep their original value.
+     * Difficulty, base and noncritical totals must fit two digits (0 to 99).
      * Left clicking anywhere in the open GUI skips directly to the final outcome.
      * Completion invokes the existing GUI handler once per roll, with this component's
      * ID in {@code uiContext.getLast()}. Set an ID to receive events.</p>
@@ -117,7 +176,8 @@ public class UIDiceComponent extends UIComponent
      *
      * <p>The two sheets require adjacent {@code .png.mcmeta} files. They must have
      * compatible poses at the end of a spin cycle and the beginning of the stop.
-     * The supplied D20 textures use square frames and no interpolation.</p>
+     * The layers must use the same 480 by 600 canvas with the die already positioned.
+     * The supplied D20 textures use rectangular frames and no interpolation.</p>
      */
     public UIDiceComponent textures(String spin, String stop, String rest)
     {
@@ -238,12 +298,14 @@ public class UIDiceComponent extends UIComponent
     public void serializeNBT(NBTTagCompound tag)
     {
         super.serializeNBT(tag);
+        tag.setInteger("Background", this.background);
 
         NBTTagCompound textures = new NBTTagCompound();
 
         textures.setString("Spin", this.spinTexture);
         textures.setString("Stop", this.stopTexture);
         textures.setString("Rest", this.restTexture);
+        textures.setString("Variant", this.variant);
         tag.setTag("Textures", textures);
 
         if (this.difficulty != null)
@@ -273,6 +335,11 @@ public class UIDiceComponent extends UIComponent
     {
         super.deserializeNBT(tag);
 
+        if (tag.hasKey("Background"))
+        {
+            this.background = tag.getInteger("Background");
+        }
+
         if (tag.hasKey("Textures"))
         {
             NBTTagCompound textures = tag.getCompoundTag("Textures");
@@ -280,6 +347,10 @@ public class UIDiceComponent extends UIComponent
             this.spinTexture = textures.getString("Spin");
             this.stopTexture = textures.getString("Stop");
             this.restTexture = textures.getString("Rest");
+            if (textures.hasKey("Variant"))
+            {
+                this.variant = textures.getString("Variant");
+            }
         }
 
         if (tag.hasKey("Roll"))

@@ -20,12 +20,40 @@ public class UIDiceComponentTest
 
         assertSame(dice, ui.root.children.get(0));
         assertFalse(dice.playing);
-        assertEquals(64, dice.w.offset);
-        assertEquals(64, dice.h.offset);
+        assertEquals(240, dice.w.offset);
+        assertEquals(300, dice.h.offset);
+        assertEquals(0x88000000, dice.background);
         assertEquals(0.5F, dice.x.value, 0F);
         assertEquals(0.5F, dice.y.anchor, 0F);
         assertNull(dice.difficulty);
         assertNull(dice.base);
+    }
+
+    @Test
+    public void backgroundRoundTripsAndPartialChangesDoNotRestartRoll()
+    {
+        UI ui = new UI();
+        UIDiceComponent server = new MappetUIBuilder(ui, "", "").dice();
+        UIContext context = new UIContext(ui);
+
+        server.id("dice").wh(128, 128);
+        server.background(0xaa123456).roll(2400, 15, 12, 5);
+        UIDiceComponent client = new UIDiceComponent();
+        client.deserializeNBT(server.serializeNBT());
+        assertEquals(0xaa123456, client.background);
+        assertEquals(128, client.w.offset);
+        assertEquals(128, client.h.offset);
+
+        context.clearChanges();
+        server.background(0);
+        NBTTagCompound change = context.compileChanges().getCompoundTag("dice");
+        assertEquals(1, change.getKeySet().size());
+        assertTrue(change.hasKey("Background"));
+        client.deserializeNBT(change);
+        assertEquals(0, client.background);
+        assertTrue(client.playing);
+        assertTrue(client.checkRoll);
+        assertEquals(1, client.rollSequence);
     }
 
     @Test
@@ -175,5 +203,107 @@ public class UIDiceComponentTest
     public void rejectsNegativeBase()
     {
         new UIDiceComponent().base(-1);
+    }
+
+    @Test
+    public void factoryAcceptsVariableColorAndDefaultsEmptyStateToOriginal() throws Exception
+    {
+        UI ui = new UI();
+        MappetUIBuilder builder = new MappetUIBuilder(ui, "", "");
+        javax.script.ScriptEngine engine = new javax.script.ScriptEngineManager().getEngineByName("nashorn");
+        assertNotNull(engine);
+        engine.put("ui", builder);
+        engine.put("stateColor", "blue");
+        UIDiceComponent dice = (UIDiceComponent) engine.eval("ui.dice(stateColor).difficulty(15).base(5)");
+        assertEquals("blue", dice.variant);
+        assertEquals(UIDiceComponent.TEXTURES + "dice/blue/rest.png", dice.restTexture);
+        assertFalse(dice.playing);
+        assertEquals("original", builder.dice("").variant);
+        assertEquals("original", builder.dice(null).variant);
+        assertEquals("burgundy", builder.dice(" BURGUNDY ").variant);
+    }
+
+    @Test
+    public void variantRoundTripsAndPartialColorUpdateDoesNotRestartRoll()
+    {
+        for (String name : new String[] {"original", "blue", "burgundy", "green", "purple", "red", "violet", "yellow"})
+        {
+            UIDiceComponent server = new UIDiceComponent().variant(name).roll(2400, 15, 12, 5);
+            UIDiceComponent client = new UIDiceComponent();
+            client.deserializeNBT(server.serializeNBT());
+            assertEquals(name, client.variant);
+            assertEquals(server.spinTexture, client.spinTexture);
+            assertEquals(server.stopTexture, client.stopTexture);
+            assertEquals(server.restTexture, client.restTexture);
+        }
+
+        UI ui = new UI();
+        UIDiceComponent server = new MappetUIBuilder(ui, "", "").dice();
+        server.id("dice");
+        UIContext context = new UIContext(ui);
+        server.roll(2400, 15, 12, 5);
+        UIDiceComponent client = new UIDiceComponent();
+        client.deserializeNBT(server.serializeNBT());
+        context.clearChanges();
+        server.variant("blue");
+        NBTTagCompound changes = context.compileChanges().getCompoundTag("dice");
+        assertEquals(1, changes.getKeySet().size());
+        assertTrue(changes.hasKey("Textures"));
+        assertFalse(changes.hasKey("Roll"));
+        client.deserializeNBT(changes);
+        assertEquals("blue", client.variant);
+        assertEquals(1, client.rollSequence);
+        assertTrue(client.playing);
+        assertTrue(client.checkRoll);
+    }
+
+    @Test
+    public void invalidVariantDoesNotAddAComponentOrChangeTheExistingColor()
+    {
+        UI ui = new UI();
+        MappetUIBuilder builder = new MappetUIBuilder(ui, "", "");
+        UIDiceComponent dice = builder.dice("blue");
+        try
+        {
+            builder.dice("unknown");
+            fail("Unknown colors must be rejected");
+        }
+        catch (IllegalArgumentException expected)
+        {
+            assertEquals(1, ui.root.children.size());
+            assertEquals("blue", dice.variant);
+        }
+    }
+
+    @Test
+    public void threeDigitSumIsRejectedBeforeAnyRollMutation()
+    {
+        UIDiceComponent dice = new UIDiceComponent().roll(2400, 15, 12, 5);
+        dice.clearChanges();
+        try
+        {
+            dice.roll(3000, 99, 19, 81);
+            fail("Three-digit totals must be rejected");
+        }
+        catch (IllegalArgumentException expected)
+        {
+            assertEquals(2400, dice.duration);
+            assertEquals(1, dice.rollSequence);
+            assertEquals(12, dice.result);
+            assertEquals(Integer.valueOf(5), dice.base);
+            assertTrue(dice.getChanges().isEmpty());
+        }
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void rejectsThreeDigitDifficulty()
+    {
+        new UIDiceComponent().difficulty(100);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void rejectsThreeDigitBase()
+    {
+        new UIDiceComponent().base(100);
     }
 }

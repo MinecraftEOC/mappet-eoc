@@ -43,8 +43,8 @@ public class DicePlaybackTest
     @Test
     public void criticalsIgnoreBaseDifficultyAndTransferPhases()
     {
-        DicePlayback failure = playback(0, 1, 100);
-        DicePlayback success = playback(Integer.MAX_VALUE, 20, 100);
+        DicePlayback failure = playback(0, 1, 99);
+        DicePlayback success = playback(99, 20, 99);
 
         assertEquals(1, failure.result.total);
         assertEquals(20, success.result.total);
@@ -99,7 +99,7 @@ public class DicePlaybackTest
     {
         for (int natural : new int[] {1, 20})
         {
-            DicePlayback roll = playback(100, natural, 100);
+            DicePlayback roll = playback(99, natural, 99);
 
             roll.skip();
             assertEquals(natural, roll.result.total);
@@ -146,18 +146,36 @@ public class DicePlaybackTest
     }
 
     @Test
-    public void zeroBaseStillUsesTheConfiguredNormalSequenceAndLargeSumDoesNotOverflow()
+    public void zeroBaseUsesTheNormalSequenceAndTwoDigitBoundaryIsSupported()
     {
         DicePlayback zero = playback(15, 12, 0);
 
         zero.advance(2900);
         assertEquals(DicePlayback.Phase.BASE, zero.phase());
-        assertEquals(2147483666L, DiceRollResult.resolve(15, 19, Integer.MAX_VALUE).total);
+        assertEquals(99, DiceRollResult.resolve(99, 19, 80).total);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void rejectsResultOutsideD20Range()
     {
         DiceRollResult.resolve(15, 21, 5);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void rejectsThreeDigitSum()
+    {
+        DiceRollResult.resolve(99, 19, 81);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void rejectsThreeDigitDifficultyEvenForCriticals()
+    {
+        DiceRollResult.resolve(100, 20, 0);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void rejectsThreeDigitBaseEvenForCriticals()
+    {
+        DiceRollResult.resolve(0, 1, 100);
     }
 }

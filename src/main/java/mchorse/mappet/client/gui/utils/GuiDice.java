@@ -9,6 +9,7 @@ import mchorse.mclib.client.gui.framework.elements.GuiElement;
 import mchorse.mclib.client.gui.framework.elements.utils.GuiContext;
 import mchorse.mclib.client.gui.framework.elements.utils.GuiDraw;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraft.util.ResourceLocation;
@@ -28,7 +29,32 @@ public class GuiDice extends GuiElement
 
         this.component = component;
         this.uiContext = context;
-        this.scene = new DiceScene(this::drawSprite);
+        this.scene = new DiceScene(new DiceScene.Painter()
+        {
+            @Override
+            public void background(int x, int y, int width, int height, int color)
+            {
+                Gui.drawRect(x, y, x + width, y + height, color);
+                // Gui.drawRect disables blending; sprite alpha and the base flight still need it.
+                GlStateManager.enableBlend();
+                GlStateManager.color(1F, 1F, 1F, 1F);
+            }
+
+            @Override
+            public float centerOffsetX(String texture, float center, float fallback)
+            {
+                SpriteSheet sheet = GuiDice.this.sheet(texture);
+
+                return sheet == null ? fallback : sheet.centeredOffsetX(center, fallback);
+            }
+
+            @Override
+            public void sprite(String texture, long elapsed, boolean loop, int cropX, int cropY, int cropW, int cropH,
+                               float x, float y, float w, float h, float alpha)
+            {
+                GuiDice.this.drawSprite(texture, elapsed, loop, cropX, cropY, cropW, cropH, x, y, w, h, alpha);
+            }
+        });
     }
 
     public void restart()
@@ -55,7 +81,7 @@ public class GuiDice extends GuiElement
 
         for (int i = 0; i < digits.length(); i++)
         {
-            duration = Math.max(duration, this.duration(DiceScene.digitTexture(digits.charAt(i), gold), 500));
+            duration = Math.max(duration, this.duration(DiceScene.digitTexture(digits.charAt(i), gold, i + 1, true), 500));
         }
 
         return duration;
@@ -123,17 +149,17 @@ public class GuiDice extends GuiElement
         GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
                 GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
 
-        float cx = this.area.x + this.area.w / 2F;
-        float cy = this.area.y + this.area.h / 2F;
-        float scale = Math.max(0.01F, Math.min(this.area.w, this.area.h) / 64F);
-
-        if (this.component.difficulty != null || this.component.base != null)
+        // Use the library's nested scissor stack, preserving any parent scroll clipping.
+        GuiDraw.scissor(this.area.x, this.area.y, Math.max(0, this.area.w), Math.max(0, this.area.h), context);
+        try
         {
-            scale = DiceScene.fitScale(scale, cx, cy, context.screen.width, context.screen.height);
+            this.scene.drawPanel(this.component, this.playback, this.area.x, this.area.y, this.area.w, this.area.h);
         }
-
-        this.scene.draw(this.component, this.playback, cx, cy, scale);
-        GlStateManager.color(1F, 1F, 1F, 1F);
+        finally
+        {
+            GuiDraw.unscissor(context);
+            GlStateManager.color(1F, 1F, 1F, 1F);
+        }
 
         super.draw(context);
         this.reportCompletion();

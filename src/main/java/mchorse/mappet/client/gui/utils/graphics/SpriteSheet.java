@@ -33,6 +33,7 @@ public class SpriteSheet
 
     private final int[] frames;
     private final long[] frameEnds;
+    private Float inkCenterX;
 
     public static SpriteSheet get(Minecraft mc, ResourceLocation texture)
     {
@@ -63,6 +64,7 @@ public class SpriteSheet
                 }
 
                 sheet = new SpriteSheet(image.getWidth(), image.getHeight(), resource.getMetadata("animation"));
+                sheet.captureInkCenter(image);
             }
             catch (IOException | RuntimeException e)
             {
@@ -136,5 +138,34 @@ public class SpriteSheet
         }
 
         return this.frames[this.frames.length - 1];
+    }
+
+    /** Inspect the final frame only. This also works with rectangular animated digit layers. */
+    public void captureInkCenter(BufferedImage image)
+    {
+        int frame = this.frames[this.frames.length - 1];
+        int u = frame % (this.width / this.frameWidth) * this.frameWidth;
+        int v = frame / (this.width / this.frameWidth) * this.frameHeight;
+        int left = this.frameWidth;
+        int right = -1;
+
+        for (int y = 0; y < this.frameHeight; y++)
+        {
+            for (int x = 0; x < this.frameWidth; x++)
+            {
+                if ((image.getRGB(u + x, v + y) >>> 24) == 0) continue;
+
+                left = Math.min(left, x);
+                right = Math.max(right, x);
+            }
+        }
+
+        if (right >= left) this.inkCenterX = (left + right + 1) / 2F;
+    }
+
+    public float centeredOffsetX(float target, float fallback)
+    {
+        // Keep the asset pack's two-pixel grid, even for narrow digits such as 1.
+        return this.inkCenterX == null ? fallback : Math.round((target - this.inkCenterX) / 2F) * 2F;
     }
 }

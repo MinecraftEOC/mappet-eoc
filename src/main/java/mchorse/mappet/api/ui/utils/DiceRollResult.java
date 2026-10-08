@@ -13,9 +13,13 @@ public class DiceRollResult
 
     public static DiceRollResult resolve(int difficulty, int result, int base)
     {
-        if (difficulty < 0 || base < 0 || result < 1 || result > 20)
+        if (difficulty < 0 || difficulty > 99 || base < 0 || base > 99 || result < 1 || result > 20)
         {
-            throw new IllegalArgumentException("Dice checks require nonnegative difficulty/base and a result from 1 to 20");
+            throw new IllegalArgumentException("Dice checks require difficulty/base from 0 to 99 and a result from 1 to 20");
+        }
+        if (result != 1 && result != 20 && result + base > 99)
+        {
+            throw new IllegalArgumentException("Dice result plus base must fit two digits (0 to 99)");
         }
 
         return new DiceRollResult(difficulty, result, base);

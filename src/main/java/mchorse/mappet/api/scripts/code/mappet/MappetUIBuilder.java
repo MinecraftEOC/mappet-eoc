@@ -127,7 +127,13 @@ public class MappetUIBuilder implements IMappetUIBuilder
     @Override
     public UIDiceComponent dice()
     {
-        UIDiceComponent component = new UIDiceComponent();
+        return this.dice("original");
+    }
+
+    @Override
+    public UIDiceComponent dice(String variant)
+    {
+        UIDiceComponent component = new UIDiceComponent().variant(variant);
 
         this.current.getChildComponents().add(component);
 

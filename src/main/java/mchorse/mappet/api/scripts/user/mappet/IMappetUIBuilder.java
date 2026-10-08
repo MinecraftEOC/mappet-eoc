@@ -134,11 +134,18 @@ public interface IMappetUIBuilder
     public UIGraphicsComponent graphics();
 
     /**
-     * Create an animated dice UI component, initially showing its resting texture.
+     * Create a centered dice panel, initially showing its resting texture.
      *
-     * <p>Check {@link UIDiceComponent} for timing and scripting examples.</p>
+     * <p>Its frame includes all widgets and the background, defaulting to 240 by
+     * 300 GUI pixels. Check {@link UIDiceComponent} for timing and scripting examples.</p>
      */
     public UIDiceComponent dice();
+
+    /**
+     * Create a dice panel using a color folder name, e.g. {@code ui.dice("blue")}.
+     * The argument may be a string read from player states. Null or empty uses original.
+     */
+    public UIDiceComponent dice(String variant);
 
     /**
      * Create and insert a button UI component into UI being built by this builder.

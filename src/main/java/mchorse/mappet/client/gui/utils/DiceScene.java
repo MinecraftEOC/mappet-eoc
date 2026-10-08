@@ -4,14 +4,25 @@ import mchorse.mappet.api.ui.components.UIDiceComponent;
 import mchorse.mappet.api.ui.utils.DicePlayback;
 import mchorse.mappet.api.ui.utils.DiceRollResult;
 
-/** Layout shared by the game painter and offscreen visual checks. Coordinates scale with the die. */
+/** Compose positioned 480 by 600 layers; only single digits and the base flight need offsets. */
 public class DiceScene
 {
-    public static final String WIDGETS = "mappet:textures/gui/dice/widgets_v2/";
+    public static final int REFERENCE_WIDTH = 480;
+    public static final int REFERENCE_HEIGHT = 600;
+    public static final String WIDGETS = UIDiceComponent.TEXTURES;
     public static final long LAST_FRAME = Long.MAX_VALUE;
 
     public interface Painter
     {
+        default void background(int x, int y, int width, int height, int color)
+        {}
+
+        /** Offset in source-canvas pixels, based on the final digit's visible bounds. */
+        default float centerOffsetX(String texture, float center, float fallback)
+        {
+            return fallback;
+        }
+
         void sprite(String texture, long elapsed, boolean loop, int cropX, int cropY, int cropW, int cropH,
                     float x, float y, float w, float h, float alpha);
     }
@@ -23,120 +34,138 @@ public class DiceScene
         this.painter = painter;
     }
 
-    /** Fit the surrounding widgets on small GUI resolutions as well. */
-    public static float fitScale(float requested, float centerX, float centerY, int screenWidth, int screenHeight)
+    public void drawPanel(UIDiceComponent component, DicePlayback playback, int x, int y, int width, int height)
     {
-        float horizontal = Math.max(1, Math.min(centerX, screenWidth - centerX) - 8) / 216F;
-        float vertical = Math.min(Math.max(1, centerY - 8) / 154F, Math.max(1, screenHeight - centerY - 8) / 120F);
+        if (width <= 0 || height <= 0) return;
 
-        return Math.max(0.01F, Math.min(requested, Math.min(horizontal, vertical)));
+        this.painter.background(x, y, width, height, component.background);
+        float scale = Math.min(width / (float) REFERENCE_WIDTH, height / (float) REFERENCE_HEIGHT);
+
+        this.draw(component, playback, x + (width - REFERENCE_WIDTH * scale) / 2,
+                y + (height - REFERENCE_HEIGHT * scale) / 2, scale);
     }
 
-    public void draw(UIDiceComponent component, DicePlayback playback, float cx, float cy, float scale)
+    /** x and y are the shared upper-left corner of the full-canvas layers. */
+    public void draw(UIDiceComponent component, DicePlayback playback, float x, float y, float scale)
     {
         if (component.difficulty != null)
         {
-            this.full(WIDGETS + "labels/difficulty_label.png", 0, false, cx - 216 * scale, cy - 154 * scale, 128 * scale, 128 * scale);
-            this.blockNumber(component.difficulty, false, cx - 152 * scale, cy - 68 * scale, scale, 1F);
+            this.layer(WIDGETS + "labels/difficulty.png", 0, false, x, y, scale, 1F);
+            this.blockNumber(component.difficulty, false, x, y, scale, 1F);
         }
         if (component.base != null)
         {
-            this.full(WIDGETS + "labels/base_label.png", 0, false, cx + 88 * scale, cy - 146 * scale, 128 * scale, 128 * scale);
-            this.blockNumber(component.base, true, cx + 152 * scale, cy - 68 * scale, scale, 1F);
+            this.layer(WIDGETS + "labels/parameter_skill.png", 0, false, x, y, scale, 1F);
+            this.blockNumber(component.base, true, x, y, scale, 1F);
         }
 
         DicePlayback.Phase phase = playback == null ? null : playback.phase();
         long elapsed = playback == null ? 0 : playback.phaseElapsed();
-        String die = phase == DicePlayback.Phase.SPIN ? component.spinTexture : phase == DicePlayback.Phase.STOP ? component.stopTexture : component.restTexture;
+        String die = phase == DicePlayback.Phase.SPIN ? component.spinTexture :
+                phase == DicePlayback.Phase.STOP ? component.stopTexture : component.restTexture;
 
-        this.full(die, elapsed, phase == DicePlayback.Phase.SPIN, cx - 32 * scale, cy - 32 * scale, 64 * scale, 64 * scale);
+        this.layer(die, elapsed, phase == DicePlayback.Phase.SPIN, x, y, scale, 1F);
 
-        if (playback == null || playback.result == null || phase.ordinal() < DicePlayback.Phase.RESULT.ordinal())
-        {
-            return;
-        }
+        if (playback == null || playback.result == null || phase.ordinal() < DicePlayback.Phase.RESULT.ordinal()) return;
 
         DiceRollResult result = playback.result;
         boolean summed = phase == DicePlayback.Phase.SUM || phase == DicePlayback.Phase.CAPTION || phase == DicePlayback.Phase.COMPLETE;
-        long value = summed ? result.total : result.result;
+        int value = (int) (summed ? result.total : result.result);
         boolean gold = summed ? result.success : result.initialSuccess();
-        long numberElapsed = phase == DicePlayback.Phase.RESULT || phase == DicePlayback.Phase.SUM ? elapsed : LAST_FRAME;
-        long numberDuration = phase == DicePlayback.Phase.SUM ? playback.sumDuration : playback.resultDuration;
+        boolean revealing = phase == DicePlayback.Phase.RESULT || phase == DicePlayback.Phase.SUM;
 
-        this.resultNumber(value, gold, numberElapsed, numberDuration, cx, cy + scale, scale);
+        this.resultNumber(value, gold, revealing, elapsed, x, y, scale);
 
         if (phase == DicePlayback.Phase.BASE)
         {
             float progress = elapsed / (float) DicePlayback.TRANSFER_DURATION;
             float ease = progress * progress * (3 - 2 * progress);
             float flightScale = scale * (1 - 0.65F * ease);
-            float x = cx + 152 * scale * (1 - ease);
-            float y = cy - 52 * scale * (1 - ease) - (float) Math.sin(Math.PI * progress) * 24 * scale;
+            float pivotX = 366 + (240 - 366) * ease;
+            float pivotY = 114 + (288 - 114) * ease - (float) Math.sin(Math.PI * progress) * 24;
             float alpha = 1 - ease * ease;
 
-            this.blockNumber(result.base, true, x, y - 16 * flightScale, flightScale, alpha);
+            // Transform the plus and all digits as one copy around their shared source pivot.
+            this.blockNumber(result.base, true, x + pivotX * scale - 366 * flightScale,
+                    y + pivotY * scale - 114 * flightScale, flightScale, alpha);
         }
 
         if (phase == DicePlayback.Phase.CAPTION || phase == DicePlayback.Phase.COMPLETE)
         {
-            this.full(captionTexture(result), phase == DicePlayback.Phase.COMPLETE ? LAST_FRAME : elapsed, false,
-                    cx - 64 * scale, cy - 8 * scale, 128 * scale, 128 * scale);
+            boolean animated = phase == DicePlayback.Phase.CAPTION;
+            this.layer(captionTexture(result, animated), animated ? elapsed : 0, false, x, y, scale, 1F);
         }
     }
 
     public static String captionTexture(DiceRollResult result)
     {
-        return WIDGETS + "captions/animated/d20_" + result.caption + ".png";
+        return captionTexture(result, true);
     }
 
-    public static String digitTexture(char digit, boolean gold)
+    public static String captionTexture(DiceRollResult result, boolean animated)
     {
-        return WIDGETS + "numbers/animated/" + (gold ? "gold" : "red") + "/d20_number_0" + digit + ".png";
+        return WIDGETS + "results/" + (animated ? "animated/" : "static/") + result.caption + ".png";
     }
 
-    private void full(String texture, long elapsed, boolean loop, float x, float y, float w, float h)
+    public static String digitTexture(char digit, boolean gold, int position, boolean animated)
     {
-        this.painter.sprite(texture, elapsed, loop, 0, 0, 0, 0, x, y, w, h, 1F);
+        return WIDGETS + "die_numbers/" + (gold ? "gold" : "red") + "/position_" + position
+                + "/digit_" + digit + (animated ? "_fade" : "") + ".png";
     }
 
-    private void blockNumber(int value, boolean plus, float cx, float top, float scale, float alpha)
+    private void layer(String texture, long elapsed, boolean loop, float x, float y, float scale, float alpha)
     {
-        String digits = Integer.toString(value);
-        int count = digits.length() + (plus ? 1 : 0);
-        float glyphScale = scale * Math.min(1F, 112F / (count * 26 + 2));
-        float x = cx - (count * 26 + 2) * glyphScale / 2;
+        this.painter.sprite(texture, elapsed, loop, 0, 0, 0, 0, x, y,
+                REFERENCE_WIDTH * scale, REFERENCE_HEIGHT * scale, alpha);
+    }
 
-        if (plus)
+    private void centeredLayer(String texture, long elapsed, float center, float fallback,
+                               float x, float y, float scale, float alpha)
+    {
+        int shift = Math.round(this.painter.centerOffsetX(texture, center, fallback));
+        int cropX = Math.max(0, -shift);
+        int cropW = REFERENCE_WIDTH - Math.abs(shift);
+
+        // Clip only the translated transparent margin, keeping the quad inside the original canvas.
+        this.painter.sprite(texture, elapsed, false, cropX, 0, cropW, REFERENCE_HEIGHT,
+                x + Math.max(0, shift) * scale, y, cropW * scale, REFERENCE_HEIGHT * scale, alpha);
+    }
+
+    private void blockNumber(int value, boolean plus, float x, float y, float scale, float alpha)
+    {
+        String directory = WIDGETS + "values/" + (plus ? "parameter_skill" : "difficulty") + "/";
+        if (plus) this.layer(directory + "plus.png", 0, false, x, y, scale, alpha);
+
+        int first = value < 10 ? value : value / 10;
+        String texture = directory + "position_1/digit_" + first + ".png";
+
+        if (!plus && value < 10)
         {
-            this.painter.sprite(WIDGETS + "digits/base/base_plus.png", 0, false, 18, 24, 28, 32,
-                    x, top, 28 * glyphScale, 32 * glyphScale, alpha);
-            x += 26 * glyphScale;
+            this.centeredLayer(texture, 0, 114, 10, x, y, scale, alpha);
         }
-
-        String atlas = WIDGETS + "digits/" + (plus ? "base" : "difficulty") + "_digits_0_9.png";
-
-        for (int i = 0; i < digits.length(); i++)
+        else
         {
-            int digit = digits.charAt(i) - '0';
-
-            this.painter.sprite(atlas, 0, false, digit * 64 + 18, 24, 28, 32,
-                    x + i * 26 * glyphScale, top, 28 * glyphScale, 32 * glyphScale, alpha);
+            this.layer(texture, 0, false, x, y, scale, alpha);
+        }
+        if (value >= 10)
+        {
+            this.layer(directory + "position_2/digit_" + value % 10 + ".png", 0, false, x, y, scale, alpha);
         }
     }
 
-    private void resultNumber(long value, boolean gold, long elapsed, long duration, float cx, float cy, float scale)
+    private void resultNumber(int value, boolean gold, boolean animated, long elapsed, float x, float y, float scale)
     {
-        String digits = Long.toString(value);
-        float glyphScale = scale * Math.min(1F, 26F / ((digits.length() - 1) * 9 + 8));
-        float progress = elapsed == LAST_FRAME ? 1F : Math.min(1F, elapsed / (float) duration);
-        float spacing = (9 + 13 * (1 - progress) * (1 - progress)) * glyphScale;
+        int first = value < 10 ? value : value / 10;
+        String texture = digitTexture((char) ('0' + first), gold, 1, animated);
 
-        for (int i = 0; i < digits.length(); i++)
+        if (value < 10)
         {
-            float x = cx + (i - (digits.length() - 1) / 2F) * spacing;
-
-            this.painter.sprite(digitTexture(digits.charAt(i), gold), elapsed, false, 18, 18, 28, 30,
-                    x - 14 * glyphScale, cy - 15 * glyphScale, 28 * glyphScale, 30 * glyphScale, 1F);
+            this.centeredLayer(texture, elapsed, 240, 14, x, y, scale, 1F);
+        }
+        else
+        {
+            this.layer(texture, elapsed, false, x, y, scale, 1F);
+            this.layer(digitTexture((char) ('0' + value % 10), gold, 2, animated), elapsed, false, x, y, scale, 1F);
         }
     }
 }
