@@ -76,6 +76,7 @@ import mchorse.mappet.network.common.scripts.PacketRepl;
 import mchorse.mappet.network.common.scripts.PacketSound;
 import mchorse.mappet.network.common.scripts.PacketWorldMorph;
 import mchorse.mappet.network.common.ui.PacketCloseUI;
+import mchorse.mappet.network.common.ui.PacketOpenUI;
 import mchorse.mappet.network.common.ui.PacketUI;
 import mchorse.mappet.network.common.ui.PacketUIData;
 import mchorse.mappet.network.common.utils.PacketChangedBoundingBox;
@@ -211,7 +212,7 @@ public class Dispatcher
             this.register(PacketHUDScene.class, ClientHandlerHUDScene.class, Side.CLIENT);
             this.register(PacketHUDMorph.class, ClientHandlerHUDMorph.class, Side.CLIENT);
 
-            this.register(PacketUI.class, ClientHandlerUI.class, Side.CLIENT);
+            this.register(PacketOpenUI.class, ClientHandlerUI.class, Side.CLIENT);
             this.register(PacketUI.class, ServerHandlerUI.class, Side.SERVER);
             this.register(PacketUIData.class, ClientHandlerUIData.class, Side.CLIENT);
             this.register(PacketUIData.class, ServerHandlerUIData.class, Side.SERVER);
