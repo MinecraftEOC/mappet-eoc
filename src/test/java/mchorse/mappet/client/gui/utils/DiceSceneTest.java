@@ -57,6 +57,25 @@ public class DiceSceneTest
     }
 
     @Test
+    public void drawsStaticDigitForTheLastFadeFrame()
+    {
+        UIDiceComponent component = new UIDiceComponent().difficulty(17);
+        DicePlayback roll = this.roll(17, 16, 0);
+        List<String> paths = new ArrayList<String>();
+        DiceScene scene = new DiceScene((path, time, loop, u, v, sw, sh, x, y, w, h, a) -> paths.add(path));
+
+        roll.advance(2849);
+        scene.draw(component, roll, 0, 0, 1);
+        assertTrue(paths.contains(DiceScene.digitTexture('6', false, 2, true)));
+
+        paths.clear();
+        roll.advance(2850);
+        scene.draw(component, roll, 0, 0, 1);
+        assertTrue(paths.contains(DiceScene.digitTexture('6', false, 2, false)));
+        assertFalse(paths.contains(DiceScene.digitTexture('6', false, 2, true)));
+    }
+
+    @Test
     public void flightAddsASecondPlusAndCriticalsDoNot()
     {
         List<String> paths = new ArrayList<String>();

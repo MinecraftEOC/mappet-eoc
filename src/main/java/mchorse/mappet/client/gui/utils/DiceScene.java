@@ -11,6 +11,7 @@ public class DiceScene
     public static final int REFERENCE_HEIGHT = 600;
     public static final String WIDGETS = UIDiceComponent.TEXTURES;
     public static final long LAST_FRAME = Long.MAX_VALUE;
+    private static final long DIGIT_FULLY_VISIBLE_MS = 450;
 
     public interface Painter
     {
@@ -72,7 +73,8 @@ public class DiceScene
         boolean summed = phase == DicePlayback.Phase.SUM || phase == DicePlayback.Phase.CAPTION || phase == DicePlayback.Phase.COMPLETE;
         int value = (int) (summed ? result.total : result.result);
         boolean gold = summed ? result.success : result.initialSuccess();
-        boolean revealing = phase == DicePlayback.Phase.RESULT || phase == DicePlayback.Phase.SUM;
+        boolean revealing = (phase == DicePlayback.Phase.RESULT || phase == DicePlayback.Phase.SUM)
+                && elapsed < DIGIT_FULLY_VISIBLE_MS;
 
         this.resultNumber(value, gold, revealing, elapsed, x, y, scale);
 

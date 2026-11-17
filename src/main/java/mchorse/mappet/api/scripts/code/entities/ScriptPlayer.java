@@ -24,7 +24,7 @@ import mchorse.mappet.network.Dispatcher;
 import mchorse.mappet.network.common.scripts.PacketEntityRotations;
 import mchorse.mappet.network.common.scripts.PacketSound;
 import mchorse.mappet.network.common.ui.PacketCloseUI;
-import mchorse.mappet.network.common.ui.PacketUI;
+import mchorse.mappet.network.common.ui.PacketOpenUI;
 import mchorse.mappet.utils.WorldUtils;
 import mchorse.metamorph.api.MorphAPI;
 import mchorse.metamorph.api.MorphUtils;
@@ -478,7 +478,7 @@ public class ScriptPlayer extends ScriptEntity<EntityPlayerMP> implements IScrip
         UIContext context = new UIContext(ui, this.entity, builder.getScript(), builder.getFunction());
 
         character.setUIContext(context);
-        Dispatcher.sendTo(new PacketUI(ui), this.getMinecraftPlayer());
+        Dispatcher.sendTo(new PacketOpenUI(ui), this.getMinecraftPlayer());
 
         if (defaultData)
         {
