@@ -14,6 +14,28 @@ Install [Minecraft Forge](http://files.minecraftforge.net/), download the latest
 
 After that, Mappet mod should be installed and will appear in Minecraft's mods menu. If Mappet didn't appear in the mods menu, then something went wrong. 
 
+## JDK setup for development
+
+Use JDK 8 and set `JAVA_HOME` to the root of your JDK installation. Add its `bin` directory to `PATH` so the build also uses JDK 8's `javadoc`.
+
+Windows (PowerShell)
+
+```powershell
+$env:JAVA_HOME = 'C:\path\to\jdk8'
+$env:Path = "$($env:JAVA_HOME)\bin;$env:Path"
+.\gradlew.bat --version
+```
+
+Linux and macOS
+
+```sh
+export JAVA_HOME=/path/to/jdk8
+export PATH="$JAVA_HOME/bin:$PATH"
+./gradlew --version
+```
+
+The `JVM` line should show Java `1.8`. To keep these settings across terminal sessions, save them in your user environment or shell profile.
+
 ## Resources
 
 At the moment, the mod is still in development, however, here is a playlist of videos that cover some Mappet mod's features:
