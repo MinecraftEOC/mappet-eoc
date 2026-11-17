@@ -1,0 +1,7 @@
+# BEGIN AIKIT PLUGINS — managed by AIKit setup
+[plugins."aikit@aikit"]
+enabled = true
+
+[plugins."forge-1-12-java@aikit"]
+enabled = true
+# END AIKIT PLUGINS
