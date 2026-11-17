@@ -1,0 +1,31 @@
+{
+  "runtimes": [
+    "codex"
+  ],
+  "profiles": [
+    "forge-1-12-java"
+  ],
+  "packs": [],
+  "codex_agents": [
+    "agent-builder",
+    "cross-project-analyst",
+    "memory-optimizer",
+    "memory-writer",
+    "mvp-analyst",
+    "security-auditor",
+    "skill-builder",
+    "tech-planner",
+    "ux-writer",
+    "forge-1-12-java-architect",
+    "forge-1-12-java-coder",
+    "forge-1-12-java-doc-writer",
+    "forge-1-12-java-quality-analyst",
+    "forge-1-12-java-reviewer",
+    "forge-1-12-java-security-auditor",
+    "forge-1-12-java-tester"
+  ],
+  "project_versions": {
+    "codex": "1.4.0"
+  },
+  "codex_agents_version": "1.4.0"
+}
