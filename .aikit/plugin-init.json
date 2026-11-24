@@ -25,7 +25,7 @@
     "forge-1-12-java-tester"
   ],
   "project_versions": {
-    "codex": "1.4.0"
+    "codex": "1.6.1"
   },
-  "codex_agents_version": "1.4.0"
+  "codex_agents_version": "1.6.1"
 }
